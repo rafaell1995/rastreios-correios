@@ -1,103 +1,169 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
 
-export default function Home() {
+// Função para extrair e transformar a URL no texto
+const parseDetalhe = (detalhe: string) => {
+  // Expressão regular para detectar URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  // Verificando se existe uma URL no texto
+  const urls = detalhe.match(urlRegex);
+
+  if (urls) {
+    // Se houver uma URL, criamos o link clicável
+    return detalhe.split(urls[0]).map((part, index) => (
+      <span key={index}>
+        {part}
+        {index === 0 ? (
+          <a
+            href={urls[0]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-blue-600 hover:text-blue-800"
+          >
+            {urls[0]}
+          </a>
+        ) : null}
+      </span>
+    ));
+  }
+
+  // Se não houver URL, apenas retorna o texto original
+  return <span>{detalhe}</span>;
+};
+
+const TrackPage = () => {
+  const [codigo, setCodigo] = useState("");
+  const [entregas, setEntregas] = useState<any[]>([]);
+  const [erro, setErro] = useState("");
+
+  const handleTrack = async () => {
+    setErro(""); // Resetando o erro
+    try {
+      const response = await fetch("/api/rastreio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: codigo }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErro(data.message || "Erro desconhecido");
+        return;
+      }
+
+      if (data.codObjeto) {
+        setEntregas((prev) => [...prev, data]);
+        setCodigo(""); // Limpa o campo de entrada após o rastreio
+      } else {
+        setErro(data.message || "Objeto não encontrado");
+      }
+    } catch (error) {
+      console.error("Erro ao rastrear:", error);
+      setErro("Erro ao rastrear o objeto. Tente novamente mais tarde.");
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-900 flex justify-center items-center py-12 px-6">
+      <div className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-xl">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Rastreio de Encomendas
+        </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            className="w-full p-4 text-lg text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Digite o código de rastreio"
+          />
+          <button
+            onClick={handleTrack}
+            className="w-full py-3 bg-blue-600 text-white text-lg font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Rastrear
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {erro && (
+          <div className="mt-4 text-red-600 text-center">
+            <strong>Erro: </strong>
+            {erro}
+          </div>
+        )}
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Entregas Rastreando
+          </h2>
+          {entregas.length === 0 ? (
+            <p className="text-gray-500 text-center mt-4">
+              Nenhuma encomenda rastreada ainda.
+            </p>
+          ) : (
+            <ul className="mt-6 space-y-4">
+              {entregas.map((entrega, index) => (
+                <li
+                  key={index}
+                  className="p-4 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200 transition-all"
+                >
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {entrega.codObjeto}
+                  </h3>
+                  <div className="mt-4 space-y-4">
+                    {entrega.eventos.map((evento: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm"
+                      >
+                        {/* Ícone */}
+                        <span className="flex-shrink-0 text-blue-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            stroke="currentColor"
+                            className="feather feather-file"
+                          >
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
+                            <line x1="14" y1="2" x2="14" y2="8"></line>
+                            <line x1="6" y1="14" x2="18" y2="14"></line>
+                          </svg>
+                        </span>
+
+                        <div>
+                          {/* Descrição do evento */}
+                          <p className="font-medium text-gray-800">
+                            {evento.descricao}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(evento.dtHrCriado.date).toLocaleString()}
+                          </p>
+                          {/* Detalhe adicional */}
+                          {evento.detalhe && (
+                            <p className="text-xs text-blue-600 mt-2">
+                              {parseDetalhe(evento.detalhe)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default TrackPage;
