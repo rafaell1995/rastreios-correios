@@ -122,21 +122,11 @@ const TrackPage = () => {
                         className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm"
                       >
                         {/* Ícone */}
-                        <span className="flex-shrink-0 text-blue-600">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            height="24"
-                            fill="none"
-                            stroke="currentColor"
-                            className="feather feather-file"
-                          >
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
-                            <line x1="14" y1="2" x2="14" y2="8"></line>
-                            <line x1="6" y1="14" x2="18" y2="14"></line>
-                          </svg>
-                        </span>
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_CORREIOS_ICON_BASE_PATH}${evento.icone}`}
+                          alt={evento.tipo}
+                          className="w-8 h-8 text-blue-800"
+                        />
 
                         <div>
                           {/* Descrição do evento */}
